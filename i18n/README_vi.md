@@ -47,7 +47,11 @@ limitations under the License.
         <a href="https://github.com/huggingface/transformers/blob/main/i18n/README_te.md">తెలుగు</a> |
         <a href="https://github.com/huggingface/transformers/blob/main/i18n/README_fr.md">Français</a> |
         <a href="https://github.com/huggingface/transformers/blob/main/i18n/README_de.md">Deutsch</a> |
+        <a href="https://github.com/huggingface/transformers/blob/main/i18n/README_it.md">Italiano</a> |
         <b>Tiếng việt</b> |
+        <a href="https://github.com/huggingface/transformers/blob/main/i18n/README_ar.md">العربية</a> |
+        <a href="https://github.com/huggingface/transformers/blob/main/i18n/README_ur.md">اردو</a> |
+        <a href="https://github.com/huggingface/transformers/blob/main/i18n/README_bn.md">বাংলা</a> |
     </p>
 </h4>
 
@@ -243,7 +247,7 @@ Chính mô hình là một [Pytorch `nn.Module`](https://pytorch.org/docs/stable
 
 ### Sử dụng pip
 
-Thư viện này được kiểm tra trên Python 3.8+, Flax 0.4.1+, PyTorch 1.11+ và TensorFlow 2.6+.
+Thư viện này được kiểm tra trên Python 3.9+, Flax 0.4.1+, PyTorch 2.1+ và TensorFlow 2.6+.
 
 Bạn nên cài đặt 🤗 Transformers trong một [môi trường ảo Python](https://docs.python.org/3/library/venv.html). Nếu bạn chưa quen với môi trường ảo Python, hãy xem [hướng dẫn sử dụng](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
 

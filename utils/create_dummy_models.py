@@ -411,7 +411,7 @@ def get_tiny_config(config_class, model_class=None, **model_tester_kwargs):
             # This is to avoid `T5EncoderOnlyModelTest` is used instead of `T5ModelTest`, which has
             # `is_encoder_decoder=False` and causes some pipeline tests failing (also failures in `Optimum` CI).
             # TODO: More fine grained control of the desired tester class.
-            model_tester_class = sorted(tester_classes, key=lambda x: (len(x.__name__), x.__name__))[0]
+            model_tester_class = min(tester_classes, key=lambda x: (len(x.__name__), x.__name__))
     except ModuleNotFoundError:
         error = f"Tiny config not created for {model_type} - cannot find the testing module from the model name."
         raise ValueError(error)
@@ -424,7 +424,7 @@ def get_tiny_config(config_class, model_class=None, **model_tester_kwargs):
     # `text_model_tester` via `text_kwargs`. The same trick is also necessary for `Flava`.
 
     if "vocab_size" in model_tester_kwargs:
-        if "text_kwargs" in inspect.signature(model_tester_class.__init__).parameters.keys():
+        if "text_kwargs" in inspect.signature(model_tester_class.__init__).parameters:
             vocab_size = model_tester_kwargs.pop("vocab_size")
             model_tester_kwargs["text_kwargs"] = {"vocab_size": vocab_size}
 
@@ -504,6 +504,27 @@ def convert_feature_extractor(feature_extractor, tiny_config):
     if to_convert:
         feature_extractor = feature_extractor.__class__(**kwargs)
 
+    # Sanity check: on tiny image feature extractors, a large image size results in slow CI -- up to the point where it
+    # can result in timeout issues.
+    if (
+        isinstance(feature_extractor, BaseImageProcessor)
+        and hasattr(feature_extractor, "size")
+        and isinstance(feature_extractor.size, dict)
+    ):
+        largest_image_size = max(feature_extractor.size.values())
+        if largest_image_size > 64:
+            # hardcoded exceptions
+            models_with_large_image_size = ("deformable_detr", "flava", "grounding_dino", "mgp_str", "swiftformer")
+            if any(model_name in tiny_config.model_type for model_name in models_with_large_image_size):
+                pass
+            else:
+                raise ValueError(
+                    f"Image size of {tiny_config.model_type} is too large ({feature_extractor.size}). "
+                    "Please reduce it to 64 or less on each dimension. The following steps are usually the "
+                    "easiest solution: 1) confirm that you're setting `image_size` in your ModelTester class; "
+                    "2) ensure that it gets passed to the tester config init, `get_config()`."
+                )
+
     return feature_extractor
 
 
@@ -526,14 +547,14 @@ def convert_processors(processors, tiny_config, output_folder, result):
         # sanity check 1: fast and slow tokenizers should be compatible (vocab_size)
         if fast_tokenizer is not None and slow_tokenizer is not None:
             if fast_tokenizer.vocab_size != slow_tokenizer.vocab_size:
-                warning_messagae = (
+                warning_message = (
                     "The fast/slow tokenizers "
                     f"({fast_tokenizer.__class__.__name__}/{slow_tokenizer.__class__.__name__}) have different "
                     "vocabulary size: "
                     f"fast_tokenizer.vocab_size = {fast_tokenizer.vocab_size} and "
                     f"slow_tokenizer.vocab_size = {slow_tokenizer.vocab_size}."
                 )
-                result["warnings"].append(warning_messagae)
+                result["warnings"].append(warning_message)
                 if not keep_fast_tokenizer:
                     fast_tokenizer = None
                 slow_tokenizer = None
@@ -541,12 +562,12 @@ def convert_processors(processors, tiny_config, output_folder, result):
         # sanity check 2: fast and slow tokenizers should be compatible (length)
         if fast_tokenizer is not None and slow_tokenizer is not None:
             if len(fast_tokenizer) != len(slow_tokenizer):
-                warning_messagae = (
+                warning_message = (
                     f"The fast/slow tokenizers () have different length: "
                     f"len(fast_tokenizer) = {len(fast_tokenizer)} and "
                     f"len(slow_tokenizer) = {len(slow_tokenizer)}."
                 )
-                result["warnings"].append(warning_messagae)
+                result["warnings"].append(warning_message)
                 if not keep_fast_tokenizer:
                     fast_tokenizer = None
                 slow_tokenizer = None
@@ -1395,7 +1416,7 @@ def create_tiny_models(
         raise ValueError(f"This script should be run from the root of the clone of `transformers` {clone_path}")
 
     report_path = os.path.join(output_path, "reports")
-    os.makedirs(report_path)
+    os.makedirs(report_path, exist_ok=True)
 
     _pytorch_arch_mappings = [
         x
@@ -1437,7 +1458,7 @@ def create_tiny_models(
             all_build_args.append((c, models_to_create, os.path.join(output_path, c.model_type)))
         with multiprocessing.Pool() as pool:
             results = pool.starmap(build, all_build_args)
-            results = {buid_args[0].__name__: result for buid_args, result in zip(all_build_args, results)}
+            results = {build_args[0].__name__: result for build_args, result in zip(all_build_args, results)}
 
     if upload:
         if organization is None:

@@ -16,7 +16,7 @@ rendered properly in your Markdown viewer.
 
 # DeepSpeed集成
 
-[DeepSpeed](https://github.com/microsoft/DeepSpeed)实现了[ZeRO论文](https://arxiv.org/abs/1910.02054)中描述的所有内容。目前，它提供对以下功能的全面支持：
+[DeepSpeed](https://github.com/deepspeedai/DeepSpeed)实现了[ZeRO论文](https://huggingface.co/papers/1910.02054)中描述的所有内容。目前，它提供对以下功能的全面支持：
 
 1. 优化器状态分区（ZeRO stage 1）
 2. 梯度分区（ZeRO stage 2）
@@ -25,13 +25,13 @@ rendered properly in your Markdown viewer.
 5. 一系列基于CUDA扩展的快速优化器
 6. ZeRO-Offload 到 CPU 和 NVMe
 
-ZeRO-Offload有其自己的专门论文：[ZeRO-Offload: Democratizing Billion-Scale Model Training](https://arxiv.org/abs/2101.06840)。而NVMe支持在论文[ZeRO-Infinity: Breaking the GPU Memory Wall for Extreme Scale Deep Learning](https://arxiv.org/abs/2104.07857)中进行了描述。
+ZeRO-Offload有其自己的专门论文：[ZeRO-Offload: Democratizing Billion-Scale Model Training](https://huggingface.co/papers/2101.06840)。而NVMe支持在论文[ZeRO-Infinity: Breaking the GPU Memory Wall for Extreme Scale Deep Learning](https://huggingface.co/papers/2104.07857)中进行了描述。
 
 DeepSpeed ZeRO-2主要用于训练，因为它的特性对推理没有用处。
 
 DeepSpeed ZeRO-3也可以用于推理，因为它允许将单个GPU无法加载的大模型加载到多个GPU上。
 
-🤗 Transformers通过以下两种方式集成了[DeepSpeed](https://github.com/microsoft/DeepSpeed)：
+🤗 Transformers通过以下两种方式集成了[DeepSpeed](https://github.com/deepspeedai/DeepSpeed)：
 
 1. 通过[`Trainer`]集成核心的DeepSpeed功能。这是一种“为您完成一切”式的集成 - 您只需提供自定义配置文件或使用我们的模板配置文件。本文档的大部分内容都集中在这个功能上。
 2. 如果您不使用[`Trainer`]并希望在自己的Trainer中集成DeepSpeed，那么像`from_pretrained`和`from_config`这样的核心功能函数将包括ZeRO stage 3及以上的DeepSpeed的基础部分，如`zero.Init`。要利用此功能，请阅读有关[非Trainer DeepSpeed集成](#nontrainer-deepspeed-integration)的文档。
@@ -72,7 +72,7 @@ pip install deepspeed
 pip install transformers[deepspeed]
 ```
 
-或在 [DeepSpeed 的 GitHub 页面](https://github.com/microsoft/deepspeed#installation) 和
+或在 [DeepSpeed 的 GitHub 页面](https://github.com/deepspeedai/DeepSpeed#installation) 和
 [高级安装](https://www.deepspeed.ai/tutorials/advanced-install/) 中查找更多详细信息。
 
 如果构建过程中仍然遇到问题，请首先确保阅读 [CUDA 扩展安装注意事项](trainer#cuda-extension-installation-notes)。
@@ -83,7 +83,7 @@ pip install transformers[deepspeed]
 
 
 ```bash
-git clone https://github.com/microsoft/DeepSpeed/
+git clone https://github.com/deepspeedai/DeepSpeed/
 cd DeepSpeed
 rm -rf build
 TORCH_CUDA_ARCH_LIST="8.6" DS_BUILD_CPU_ADAM=1 DS_BUILD_UTILS=1 pip install . \
@@ -105,7 +105,7 @@ CUDA_VISIBLE_DEVICES=0 python -c "import torch; print(torch.cuda.get_device_capa
 
 
 ```bash
-git clone https://github.com/microsoft/DeepSpeed/
+git clone https://github.com/deepspeedai/DeepSpeed/
 cd DeepSpeed
 rm -rf build
 TORCH_CUDA_ARCH_LIST="8.6" DS_BUILD_CPU_ADAM=1 DS_BUILD_UTILS=1 \
@@ -142,7 +142,7 @@ _CudaDeviceProperties(name='GeForce RTX 3090', major=8, minor=6, total_memory=24
 
 您也可以完全省略 `TORCH_CUDA_ARCH_LIST`，然后构建程序将自动查询构建所在的 GPU 的架构。这可能与目标机器上的 GPU 不匹配，因此最好明确指定所需的架构。
 
-如果尝试了所有建议的方法仍然遇到构建问题，请继续在 [Deepspeed](https://github.com/microsoft/DeepSpeed/issues)的 GitHub Issue 上提交问题。
+如果尝试了所有建议的方法仍然遇到构建问题，请继续在 [Deepspeed](https://github.com/deepspeedai/DeepSpeed/issues)的 GitHub Issue 上提交问题。
 
 
 <a id='deepspeed-multi-gpu'></a>
@@ -236,7 +236,7 @@ deepspeed --num_gpus=1 examples/pytorch/translation/run_translation.py \
 }
 ```
 
-这会启用`optimizer offload `和一些其他重要功能。您可以尝试不同的buffer大小，有关详细信息，请参见下面的讨论。
+这会启用`optimizer offload`和一些其他重要功能。您可以尝试不同的buffer大小，有关详细信息，请参见下面的讨论。
 
 关于这种启用类型的实际使用示例，请参阅 [此帖](https://github.com/huggingface/transformers/issues/8771#issuecomment-759176685)。
 
@@ -471,10 +471,10 @@ deepspeed examples/pytorch/translation/run_translation.py ...
 
 有关可以在 DeepSpeed 配置文件中使用的完整配置选项的详细指南，请参阅[以下文档](https://www.deepspeed.ai/docs/config-json/)。
 
-您可以在 [DeepSpeedExamples 仓库](https://github.com/microsoft/DeepSpeedExamples)中找到解决各种实际需求的数十个 DeepSpeed 配置示例。
+您可以在 [DeepSpeedExamples 仓库](https://github.com/deepspeedai/DeepSpeedExamples)中找到解决各种实际需求的数十个 DeepSpeed 配置示例。
 
 ```bash
-git clone https://github.com/microsoft/DeepSpeedExamples
+git clone https://github.com/deepspeedai/DeepSpeedExamples
 cd DeepSpeedExamples
 find . -name '*json'
 ```
@@ -485,7 +485,7 @@ find . -name '*json'
 grep -i Lamb $(find . -name '*json')
 ```
 
-还可以在[主仓](https://github.com/microsoft/DeepSpeed)中找到更多示例。
+还可以在[主仓](https://github.com/deepspeedai/DeepSpeed)中找到更多示例。
 
 在使用 DeepSpeed 时，您总是需要提供一个 DeepSpeed 配置文件，但是一些配置参数必须通过命令行进行配置。您将在本指南的剩余章节找到这些细微差别。
 
@@ -797,7 +797,7 @@ ZeRO-Infinity 通过使用 NVMe 内存扩展 GPU 和 CPU 内存，从而允许�
 
 确保您的 `nvme_path` 实际上是一个 NVMe，因为它与普通硬盘或 SSD 一起工作，但速度会慢得多。快速可扩展的训练是根据现代 NVMe 传输速度设计的（截至本文撰写时，可以达到 ~3.5GB/s 读取，~3GB/s 写入的峰值速度）。
 
-为了找出最佳的 `aio` 配置块，您必须在目标设置上运行一个基准测试，具体操作请参见[说明](https://github.com/microsoft/DeepSpeed/issues/998)。
+为了找出最佳的 `aio` 配置块，您必须在目标设置上运行一个基准测试，具体操作请参见[说明](https://github.com/deepspeedai/DeepSpeed/issues/998)。
 
 
 
@@ -1650,7 +1650,7 @@ trainer = Trainer(model=model, args=training_args, ...)
 
 有关此方法和其他相关功能的完整详细信息，请参阅[构建大模型](https://deepspeed.readthedocs.io/en/latest/zero3.html#constructing-massive-models)。
 
-此外，在加载fp16预训练模型时，您希望`from_pretrained`使用`torch_dtype=torch.float16`。详情请参见[from_pretrained-torch-dtype](#from_pretrained-torch-dtype)。
+此外，在加载fp16预训练模型时，您希望`from_pretrained`使用`dtype=torch.float16`。详情请参见[from_pretrained-torch-dtype](#from_pretrained-torch-dtype)。
 
 
 #### 参数收集
@@ -1789,7 +1789,7 @@ SW: Model with 2783M total params, 65M largest layer params.
 
   因此，如果问题明显与DeepSpeed相关，例如您可以看到有一个异常并且可以看到DeepSpeed模块涉及其中，请先重新测试没有DeepSpeed的设置。只有当问题仍然存在时，才向Deepspeed提供所有必需的细节。
 
-- 如果您明确问题是在Deepspeed核心中而不是集成部分，请直接向[Deepspeed](https://github.com/microsoft/DeepSpeed/)提交问题。如果您不确定，请不要担心，无论使用哪个issue跟踪问题都可以，一旦您发布问题，我们会弄清楚并将其重定向到另一个issue跟踪（如果需要的话）。
+- 如果您明确问题是在Deepspeed核心中而不是集成部分，请直接向[Deepspeed](https://github.com/deepspeedai/DeepSpeed/)提交问题。如果您不确定，请不要担心，无论使用哪个issue跟踪问题都可以，一旦您发布问题，我们会弄清楚并将其重定向到另一个issue跟踪（如果需要的话）。
 
 
 
@@ -2086,15 +2086,15 @@ RUN_SLOW=1 pytest tests/deepspeed
 
 ## 主要的DeepSpeed资源
 
-- [项目GitHub](https://github.com/microsoft/deepspeed)
+- [项目GitHub](https://github.com/deepspeedai/DeepSpeed)
 - [使用文档](https://www.deepspeed.ai/getting-started/)
 - [API文档](https://deepspeed.readthedocs.io/en/latest/index.html)
 - [博客文章](https://www.microsoft.com/en-us/research/search/?q=deepspeed)
 
 论文:
 
-- [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054)
-- [ZeRO-Offload: Democratizing Billion-Scale Model Training](https://arxiv.org/abs/2101.06840)
-- [ZeRO-Infinity: Breaking the GPU Memory Wall for Extreme Scale Deep Learning](https://arxiv.org/abs/2104.07857)
+- [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://huggingface.co/papers/1910.02054)
+- [ZeRO-Offload: Democratizing Billion-Scale Model Training](https://huggingface.co/papers/2101.06840)
+- [ZeRO-Infinity: Breaking the GPU Memory Wall for Extreme Scale Deep Learning](https://huggingface.co/papers/2104.07857)
 
-最后，请记住，HuggingFace [`Trainer`]仅集成了DeepSpeed，因此如果您在使用DeepSpeed时遇到任何问题或疑问，请在[DeepSpeed GitHub](https://github.com/microsoft/DeepSpeed/issues)上提交一个issue。
+最后，请记住，HuggingFace [`Trainer`]仅集成了DeepSpeed，因此如果您在使用DeepSpeed时遇到任何问题或疑问，请在[DeepSpeed GitHub](https://github.com/deepspeedai/DeepSpeed/issues)上提交一个issue。
