@@ -1137,21 +1137,21 @@ def _decode_asr(tokenizer, model_outputs, *, return_timestamps, return_language,
     # Preparing and cleaning up the pipeline output
     full_text = "".join(chunk["text"] for chunk in chunks)
     if return_timestamps or return_language:
+        languages = []
         for chunk in chunks:
             if not return_timestamps:
                 chunk.pop("timestamp")
             else:
                 chunk["timestamp"] = tuple(chunk["timestamp"])
-            if not return_language:
-                chunk.pop("language")
+            languages.append(chunk.pop("language"))
 
         if return_timestamps == "word":
             new_chunks = []
             for chunk in chunks:
                 new_chunks.extend(chunk["words"])
-            optional = {"chunks": new_chunks}
+            optional = {"chunks": new_chunks, "languages": languages}
         else:
-            optional = {"chunks": chunks}
+            optional = {"chunks": chunks, "languages": languages}
     else:
         optional = {}
     return full_text, optional

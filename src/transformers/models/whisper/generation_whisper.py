@@ -17,7 +17,8 @@ import math
 import warnings
 import zlib
 from collections.abc import Callable, Iterator
-from typing import Optional, Union
+from typing import Optional, Union, Literal
+
 
 import numpy as np
 import torch
@@ -391,7 +392,7 @@ class WhisperGenerationMixin(GenerationMixin):
         stopping_criteria: Optional[StoppingCriteriaList] = None,
         prefix_allowed_tokens_fn: Optional[Callable[[int, torch.Tensor], list[int]]] = None,
         synced_gpus: bool = False,
-        return_timestamps: Optional[bool] = None,
+        return_timestamps: Optional[Union[bool, Literal["word"]]] = None,
         task: Optional[str] = None,
         language: Optional[Union[str, list[str]]] = None,
         is_multilingual: Optional[bool] = None,
@@ -460,7 +461,7 @@ class WhisperGenerationMixin(GenerationMixin):
             synced_gpus (`bool`, *optional*, defaults to `False`):
                 Whether to continue running the while loop until max_length (needed to avoid deadlocking with
                 `FullyShardedDataParallel` and DeepSpeed ZeRO Stage 3).
-            return_timestamps (`bool`, *optional*):
+            return_timestamps (`bool` or `Literal["word"]`, *optional*):
                 Whether to return the timestamps with the text. This enables the `WhisperTimestampsLogitsProcessor`.
                 For audios longer than 30 seconds, it is necessary to set `return_timestamps=True`.
             task (`str`, *optional*):
@@ -1415,7 +1416,10 @@ class WhisperGenerationMixin(GenerationMixin):
                 "https://github.com/huggingface/transformers/issues/21878#issuecomment-1451902363"
             )
 
-        generation_config.return_timestamps = return_timestamps
+        if return_timestamps is True:
+            generation_config.return_timestamps = return_timestamps
+        else:
+            generation_config.return_timestamps = False
 
         if hasattr(generation_config, "no_timestamps_token_id"):
             timestamp_begin = generation_config.no_timestamps_token_id + 1
@@ -1559,8 +1563,6 @@ class WhisperGenerationMixin(GenerationMixin):
         else:
             languages = [language]  # Use a length-1 list now, broadcast later
 
-        # Separate init_tokens for each language
-        init_tokens = [copy.copy(init_tokens) for _ in languages]
 
         # Update init_tokens with languages
         lang_ids = None
@@ -1574,6 +1576,10 @@ class WhisperGenerationMixin(GenerationMixin):
                 generation_config=generation_config,
                 num_segment_frames=num_segment_frames,
             ).tolist()
+
+        # Separate init_tokens for each language id
+        init_tokens = [copy.copy(init_tokens) for _ in lang_ids]
+
         if lang_ids is not None:
             # append or replace lang_ids to init_tokens
             for i in range(len(init_tokens)):
