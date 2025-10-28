@@ -529,10 +529,10 @@ class AutomaticSpeechRecognitionPipeline(ChunkPipeline):
                 if return_timestamps == "word":
                     generate_kwargs["return_token_timestamps"] = True
                     generate_kwargs["return_segments"] = True
-                    if return_language:
-                        # The First three special tokens will be <|startoftranscript|><|language|><|task(transcribe/translate)|>
-                        # Here we ask for two tokens to be preserved so <|language|> is returned.
-                        generate_kwargs["keep_special_tokens"] = 2
+                if return_language:
+                    # The First three special tokens will be <|startoftranscript|><|language|><|task(transcribe/translate)|>
+                    # Here we ask for two tokens to be preserved so <|language|> is returned.
+                    generate_kwargs["keep_special_tokens"] = 2
 
             # User-defined `generation_config` passed to the pipeline call take precedence
             if "generation_config" not in generate_kwargs:
